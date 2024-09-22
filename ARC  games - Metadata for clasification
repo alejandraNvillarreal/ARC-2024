@@ -1,0 +1,1744 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "e1602f37",
+   "metadata": {
+    "papermill": {
+     "duration": 0.010284,
+     "end_time": "2024-09-22T04:10:44.334460",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:44.324176",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# **How to create Metadata for Clasification**"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f9709c8c",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009501,
+     "end_time": "2024-09-22T04:10:44.353902",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:44.344401",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "In this notebook I want to share the way I'm using to split the training file according some specs.\n",
+    "\n",
+    "I've using this metod to work only with the equal dimension and squared matrix examples in the notebook [ARC - Applying 🧮 algebra to EDA 🔎](https://www.kaggle.com/code/alejandravillarreal/arc-applying-algebra-to-eda)\n",
+    "\n",
+    "I've also create a dataset with the split of examples by dimensionality [ARC 2024 - Training challenges for analysis](https://www.kaggle.com/datasets/alejandravillarreal/arc-2024-training-explamples-by-form/data)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "01bd6756",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009271,
+     "end_time": "2024-09-22T04:10:44.372842",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:44.363571",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "*I will appreciate any feedback* 🙂 *or sugestion of other specs I'm not considering in this notebook version.*"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8a2be6ec",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009271,
+     "end_time": "2024-09-22T04:10:44.391604",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:44.382333",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Libraries"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "630aa2fb",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:16:23.507094Z",
+     "start_time": "2024-07-17T05:16:23.185664Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:44.412466Z",
+     "iopub.status.busy": "2024-09-22T04:10:44.412054Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.245589Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.244535Z"
+    },
+    "papermill": {
+     "duration": 0.847239,
+     "end_time": "2024-09-22T04:10:45.248408",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:44.401169",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import json\n",
+    "import pandas as pd\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ae125ea",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009417,
+     "end_time": "2024-09-22T04:10:45.267853",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.258436",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Extraction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "8a9550c4",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:16:24.866445Z",
+     "start_time": "2024-07-17T05:16:24.863119Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.288776Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.288287Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.294058Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.293038Z"
+    },
+    "papermill": {
+     "duration": 0.019329,
+     "end_time": "2024-09-22T04:10:45.296742",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.277413",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "base_path='/kaggle/input/arc-prize-2024/'\n",
+    "\n",
+    "# Loading JSON data\n",
+    "def load_json(file_path):\n",
+    "    with open(file_path) as f:\n",
+    "        data = json.load(f)\n",
+    "    return data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "b9abd7e0",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:16:26.494843Z",
+     "start_time": "2024-07-17T05:16:26.395403Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.322431Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.321535Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.729659Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.728607Z"
+    },
+    "papermill": {
+     "duration": 0.422715,
+     "end_time": "2024-09-22T04:10:45.732426",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.309711",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "training_challenges   = load_json(base_path +'arc-agi_training_challenges.json')\n",
+    "training_solutions    = load_json(base_path +'arc-agi_training_solutions.json')\n",
+    "\n",
+    "evaluation_challenges = load_json(base_path +'arc-agi_evaluation_challenges.json')\n",
+    "evaluation_solutions  = load_json(base_path +'arc-agi_evaluation_solutions.json')\n",
+    "\n",
+    "test_challenges       = load_json(base_path +'arc-agi_test_challenges.json')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bf2f083b",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009449,
+     "end_time": "2024-09-22T04:10:45.751851",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.742402",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Dimensionality functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "4617f8d2",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:22:16.001590Z",
+     "start_time": "2024-07-17T05:22:15.997854Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.773868Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.772834Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.787747Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.786709Z"
+    },
+    "papermill": {
+     "duration": 0.028616,
+     "end_time": "2024-09-22T04:10:45.790266",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.761650",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#Compare the Input Matrix dimension vs the output Matrix (all pairs of examples)\n",
+    "def eq_dim_matrix(challenge,pairs):\n",
+    "    eq_count = 0\n",
+    "    x =0\n",
+    "    for pair in range(pairs):\n",
+    "        if len(challenge[pair]['input']) == len(challenge[pair]['output']):\n",
+    "            if len(challenge[pair]['input'][0]) == len(challenge[pair]['output'][0]):\n",
+    "                eq_count = eq_count + 1\n",
+    "            else:\n",
+    "                eq_count = eq_count - 1\n",
+    "        else:\n",
+    "            eq_count = -1\n",
+    "\n",
+    "    if eq_count == pairs:\n",
+    "        x = 1\n",
+    "    return x\n",
+    "\n",
+    "# Validate if one the Matrix is a square one\n",
+    "def squared_matrix(matrix):\n",
+    "    x = 0\n",
+    "    if len(matrix) == len(matrix[0]):\n",
+    "        x = 1\n",
+    "    return x\n",
+    "\n",
+    "#Validate if both Matrix are squared (Input and output of all pairs of examples)\n",
+    "def squared_matrix_full(challenge,pairs):\n",
+    "    sq_in, sq_out, sq_both, x, y  = 0,0,0,0,0\n",
+    "    for pair in range(pairs):\n",
+    "        x = x + squared_matrix(challenge[pair]['input'])\n",
+    "        y = y + squared_matrix(challenge[pair]['output'])\n",
+    "    if x == pairs:\n",
+    "        sq_in = 1\n",
+    "    if y == pairs:\n",
+    "        sq_out = 1\n",
+    "    if sq_in + sq_out == 2:\n",
+    "        sq_both = 1\n",
+    "    return sq_in, sq_out, sq_both"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3eaaab09",
+   "metadata": {
+    "papermill": {
+     "duration": 0.009464,
+     "end_time": "2024-09-22T04:10:45.809749",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.800285",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Dataset creation"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "a18dd2c5",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:47:44.782748Z",
+     "start_time": "2024-07-17T05:47:44.777233Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.832056Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.830959Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.850819Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.849658Z"
+    },
+    "papermill": {
+     "duration": 0.034336,
+     "end_time": "2024-09-22T04:10:45.853927",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.819591",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "id = []\n",
+    "pairs = []\n",
+    "eq_dim = []\n",
+    "sq_in = []\n",
+    "sq_out = []\n",
+    "sq_both = []\n",
+    "cols_in = []\n",
+    "rows_in = []\n",
+    "cols_out = []\n",
+    "rows_out = []\n",
+    "\n",
+    "for challenge in training_challenges:\n",
+    "    id.append(challenge)\n",
+    "    pairs.append(len(training_challenges[challenge]['train']))\n",
+    "    eq_dim.append(eq_dim_matrix(training_challenges[challenge]['train'],len(training_challenges[challenge]['train'])))\n",
+    "    x, y, z = squared_matrix_full(training_challenges[challenge]['train'],len(training_challenges[challenge]['train']))\n",
+    "    sq_in.append(x)\n",
+    "    sq_out.append(y)\n",
+    "    sq_both.append(z)\n",
+    "    rows_in.append(len(training_challenges[challenge]['train'][0]['input']))\n",
+    "    cols_in.append(len(training_challenges[challenge]['train'][0]['input'][0]))\n",
+    "    rows_out.append(len(training_challenges[challenge]['train'][0]['output']))\n",
+    "    cols_out.append(len(training_challenges[challenge]['train'][0]['output'][0]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "063cb94c",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:47:48.173372Z",
+     "start_time": "2024-07-17T05:47:48.169039Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.878539Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.877354Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.890116Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.889021Z"
+    },
+    "papermill": {
+     "duration": 0.026215,
+     "end_time": "2024-09-22T04:10:45.892387",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.866172",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "meta_train = pd.DataFrame({'id':id,'pairs':pairs,'eq_dim':eq_dim, 'sq_in':sq_in, 'sq_out':sq_out, 'sq_both':sq_both, 'cols_in':cols_in, 'rows_in':rows_in, 'cols_out':cols_out, 'rows_out':rows_out})"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "9a8afeda",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:47:50.403930Z",
+     "start_time": "2024-07-17T05:47:50.397632Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.914279Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.913388Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.941262Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.940030Z"
+    },
+    "papermill": {
+     "duration": 0.041704,
+     "end_time": "2024-09-22T04:10:45.943967",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.902263",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>007bbfb7</td>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>00d62c1b</td>\n",
+       "      <td>5</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>017c7c7b</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>3</td>\n",
+       "      <td>6</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>025d127b</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>045e512c</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "0  007bbfb7      5       0      1       1        1        3        3   \n",
+       "1  00d62c1b      5       1      1       1        1        6        6   \n",
+       "2  017c7c7b      3       0      0       0        0        3        6   \n",
+       "3  025d127b      2       1      0       0        0        9       14   \n",
+       "4  045e512c      3       1      1       1        1       21       21   \n",
+       "\n",
+       "   cols_out  rows_out  \n",
+       "0         9         9  \n",
+       "1         6         6  \n",
+       "2         3         9  \n",
+       "3         9        14  \n",
+       "4        21        21  "
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "#Metadata example\n",
+    "meta_train.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "303fb33f",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:47:55.407678Z",
+     "start_time": "2024-07-17T05:47:55.403923Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:45.971559Z",
+     "iopub.status.busy": "2024-09-22T04:10:45.970778Z",
+     "iopub.status.idle": "2024-09-22T04:10:45.982280Z",
+     "shell.execute_reply": "2024-09-22T04:10:45.981230Z"
+    },
+    "papermill": {
+     "duration": 0.026594,
+     "end_time": "2024-09-22T04:10:45.984528",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.957934",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# adding more dimensionality epecs\n",
+    "meta_train['area_in'] = meta_train['cols_in']* meta_train['rows_in']\n",
+    "meta_train['area_out'] = meta_train['cols_out']* meta_train['rows_out']\n",
+    "meta_train['increase'] = meta_train['area_out']/meta_train['area_in']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "0109bf90",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.006522Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.005802Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.025560Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.024518Z"
+    },
+    "papermill": {
+     "duration": 0.033581,
+     "end_time": "2024-09-22T04:10:46.028226",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:45.994645",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "      <th>area_in</th>\n",
+       "      <th>area_out</th>\n",
+       "      <th>increase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>007bbfb7</td>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>81</td>\n",
+       "      <td>9.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>00d62c1b</td>\n",
+       "      <td>5</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>36</td>\n",
+       "      <td>36</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>017c7c7b</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>3</td>\n",
+       "      <td>6</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "      <td>18</td>\n",
+       "      <td>27</td>\n",
+       "      <td>1.5</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>025d127b</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>126</td>\n",
+       "      <td>126</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>045e512c</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>441</td>\n",
+       "      <td>441</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "0  007bbfb7      5       0      1       1        1        3        3   \n",
+       "1  00d62c1b      5       1      1       1        1        6        6   \n",
+       "2  017c7c7b      3       0      0       0        0        3        6   \n",
+       "3  025d127b      2       1      0       0        0        9       14   \n",
+       "4  045e512c      3       1      1       1        1       21       21   \n",
+       "\n",
+       "   cols_out  rows_out  area_in  area_out  increase  \n",
+       "0         9         9        9        81       9.0  \n",
+       "1         6         6       36        36       1.0  \n",
+       "2         3         9       18        27       1.5  \n",
+       "3         9        14      126       126       1.0  \n",
+       "4        21        21      441       441       1.0  "
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Showing the new columns\n",
+    "meta_train.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a5b1e3fa",
+   "metadata": {
+    "papermill": {
+     "duration": 0.010961,
+     "end_time": "2024-09-22T04:10:46.053652",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.042691",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Splitting data for dimensionality"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9eeb90b4",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:48:01.849287Z",
+     "start_time": "2024-07-17T05:48:01.845209Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.076271Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.075363Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.092210Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.091081Z"
+    },
+    "papermill": {
+     "duration": 0.030978,
+     "end_time": "2024-09-22T04:10:46.094790",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.063812",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#  Filters to create the finals datasets\n",
+    "\n",
+    "#filtering just equals dim ones\n",
+    "eq_dim_train = meta_train[meta_train['eq_dim']==1]\n",
+    "#filtering the examples with square input and output\n",
+    "sq_both_train = meta_train[meta_train['sq_both']==1]\n",
+    "#filtering the examples that are not square input and output\n",
+    "non_squared_train = meta_train[meta_train['sq_both']==0]\n",
+    "#filtering the examples that are not equals dim input and output\n",
+    "diff_train = meta_train[meta_train['eq_dim']==0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "ca85113c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.118287Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.117291Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.128426Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.127274Z"
+    },
+    "papermill": {
+     "duration": 0.025242,
+     "end_time": "2024-09-22T04:10:46.130655",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.105413",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#  Creating the finals datasets\n",
+    "\n",
+    "#filtering examples that are equal dimension and squared matrix (input and output)\n",
+    "equals_squared_train = eq_dim_train[eq_dim_train['sq_both']==1]\n",
+    "#filtering examples that are equal dimension but not squared matrix (input and output)\n",
+    "equals_non_squared_train = eq_dim_train[eq_dim_train['sq_both']==0]\n",
+    "#filtering the examples with square matrix but not equal dimension (input and output)\n",
+    "diff_squared_train = sq_both_train[sq_both_train['eq_dim']==0]\n",
+    "#filtering the examples that are not square and not equal dimension (input and output)\n",
+    "diff_non_squared_train = non_squared_train[non_squared_train['eq_dim']==0]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7a6239af",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01003,
+     "end_time": "2024-09-22T04:10:46.151032",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.141002",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Printing the finals datasets"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "9a67579d",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:48:04.611591Z",
+     "start_time": "2024-07-17T05:48:04.608398Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.173351Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.172519Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.187841Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.186695Z"
+    },
+    "papermill": {
+     "duration": 0.02903,
+     "end_time": "2024-09-22T04:10:46.190112",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.161082",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "      <th>area_in</th>\n",
+       "      <th>area_out</th>\n",
+       "      <th>increase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>00d62c1b</td>\n",
+       "      <td>5</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>6</td>\n",
+       "      <td>36</td>\n",
+       "      <td>36</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>045e512c</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>441</td>\n",
+       "      <td>441</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>05269061</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>7</td>\n",
+       "      <td>7</td>\n",
+       "      <td>7</td>\n",
+       "      <td>7</td>\n",
+       "      <td>49</td>\n",
+       "      <td>49</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>06df4c85</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>20</td>\n",
+       "      <td>20</td>\n",
+       "      <td>20</td>\n",
+       "      <td>20</td>\n",
+       "      <td>400</td>\n",
+       "      <td>400</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>08ed6ac7</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>81</td>\n",
+       "      <td>81</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "1  00d62c1b      5       1      1       1        1        6        6   \n",
+       "4  045e512c      3       1      1       1        1       21       21   \n",
+       "6  05269061      3       1      1       1        1        7        7   \n",
+       "8  06df4c85      3       1      1       1        1       20       20   \n",
+       "9  08ed6ac7      2       1      1       1        1        9        9   \n",
+       "\n",
+       "   cols_out  rows_out  area_in  area_out  increase  \n",
+       "1         6         6       36        36       1.0  \n",
+       "4        21        21      441       441       1.0  \n",
+       "6         7         7       49        49       1.0  \n",
+       "8        20        20      400       400       1.0  \n",
+       "9         9         9       81        81       1.0  "
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "equals_squared_train.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "52b1ceee",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:48:41.510805Z",
+     "start_time": "2024-07-17T05:48:41.502738Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.213399Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.213006Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.229154Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.228069Z"
+    },
+    "papermill": {
+     "duration": 0.030712,
+     "end_time": "2024-09-22T04:10:46.231568",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.200856",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "      <th>area_in</th>\n",
+       "      <th>area_out</th>\n",
+       "      <th>increase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>025d127b</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>126</td>\n",
+       "      <td>126</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>05f2a901</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>9</td>\n",
+       "      <td>14</td>\n",
+       "      <td>126</td>\n",
+       "      <td>126</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>0a938d79</td>\n",
+       "      <td>4</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>25</td>\n",
+       "      <td>10</td>\n",
+       "      <td>25</td>\n",
+       "      <td>10</td>\n",
+       "      <td>250</td>\n",
+       "      <td>250</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>0e206a2e</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>18</td>\n",
+       "      <td>14</td>\n",
+       "      <td>18</td>\n",
+       "      <td>14</td>\n",
+       "      <td>252</td>\n",
+       "      <td>252</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>150deff5</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>11</td>\n",
+       "      <td>9</td>\n",
+       "      <td>11</td>\n",
+       "      <td>9</td>\n",
+       "      <td>99</td>\n",
+       "      <td>99</td>\n",
+       "      <td>1.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "3   025d127b      2       1      0       0        0        9       14   \n",
+       "7   05f2a901      3       1      0       0        0        9       14   \n",
+       "12  0a938d79      4       1      0       0        0       25       10   \n",
+       "17  0e206a2e      3       1      0       0        0       18       14   \n",
+       "22  150deff5      3       1      0       0        0       11        9   \n",
+       "\n",
+       "    cols_out  rows_out  area_in  area_out  increase  \n",
+       "3          9        14      126       126       1.0  \n",
+       "7          9        14      126       126       1.0  \n",
+       "12        25        10      250       250       1.0  \n",
+       "17        18        14      252       252       1.0  \n",
+       "22        11         9       99        99       1.0  "
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "equals_non_squared_train.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "249ebe8e",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:49:05.617819Z",
+     "start_time": "2024-07-17T05:49:05.607173Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.255309Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.254877Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.270904Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.269747Z"
+    },
+    "papermill": {
+     "duration": 0.030622,
+     "end_time": "2024-09-22T04:10:46.273183",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.242561",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "      <th>area_in</th>\n",
+       "      <th>area_out</th>\n",
+       "      <th>increase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>007bbfb7</td>\n",
+       "      <td>5</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>9</td>\n",
+       "      <td>81</td>\n",
+       "      <td>9.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>137eaa0f</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>11</td>\n",
+       "      <td>11</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>121</td>\n",
+       "      <td>9</td>\n",
+       "      <td>0.074380</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>38</th>\n",
+       "      <td>2013d3e2</td>\n",
+       "      <td>2</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>10</td>\n",
+       "      <td>10</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>100</td>\n",
+       "      <td>9</td>\n",
+       "      <td>0.090000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>55</th>\n",
+       "      <td>27a28665</td>\n",
+       "      <td>7</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>9</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0.111111</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>64</th>\n",
+       "      <td>2dc579da</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>5</td>\n",
+       "      <td>5</td>\n",
+       "      <td>2</td>\n",
+       "      <td>2</td>\n",
+       "      <td>25</td>\n",
+       "      <td>4</td>\n",
+       "      <td>0.160000</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "0   007bbfb7      5       0      1       1        1        3        3   \n",
+       "21  137eaa0f      3       0      1       1        1       11       11   \n",
+       "38  2013d3e2      2       0      1       1        1       10       10   \n",
+       "55  27a28665      7       0      1       1        1        3        3   \n",
+       "64  2dc579da      3       0      1       1        1        5        5   \n",
+       "\n",
+       "    cols_out  rows_out  area_in  area_out  increase  \n",
+       "0          9         9        9        81  9.000000  \n",
+       "21         3         3      121         9  0.074380  \n",
+       "38         3         3      100         9  0.090000  \n",
+       "55         1         1        9         1  0.111111  \n",
+       "64         2         2       25         4  0.160000  "
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "diff_squared_train.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "bbe94c34",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:49:10.194788Z",
+     "start_time": "2024-07-17T05:49:10.185748Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.298019Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.297126Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.312192Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.311100Z"
+    },
+    "papermill": {
+     "duration": 0.029879,
+     "end_time": "2024-09-22T04:10:46.314616",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.284737",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>pairs</th>\n",
+       "      <th>eq_dim</th>\n",
+       "      <th>sq_in</th>\n",
+       "      <th>sq_out</th>\n",
+       "      <th>sq_both</th>\n",
+       "      <th>cols_in</th>\n",
+       "      <th>rows_in</th>\n",
+       "      <th>cols_out</th>\n",
+       "      <th>rows_out</th>\n",
+       "      <th>area_in</th>\n",
+       "      <th>area_out</th>\n",
+       "      <th>increase</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>017c7c7b</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>3</td>\n",
+       "      <td>6</td>\n",
+       "      <td>3</td>\n",
+       "      <td>9</td>\n",
+       "      <td>18</td>\n",
+       "      <td>27</td>\n",
+       "      <td>1.500000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>0520fde7</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>7</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>21</td>\n",
+       "      <td>9</td>\n",
+       "      <td>0.428571</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>0b148d64</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>21</td>\n",
+       "      <td>21</td>\n",
+       "      <td>10</td>\n",
+       "      <td>10</td>\n",
+       "      <td>441</td>\n",
+       "      <td>100</td>\n",
+       "      <td>0.226757</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>10fcaaa3</td>\n",
+       "      <td>4</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>4</td>\n",
+       "      <td>2</td>\n",
+       "      <td>8</td>\n",
+       "      <td>4</td>\n",
+       "      <td>8</td>\n",
+       "      <td>32</td>\n",
+       "      <td>4.000000</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>1190e5a7</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>15</td>\n",
+       "      <td>15</td>\n",
+       "      <td>4</td>\n",
+       "      <td>2</td>\n",
+       "      <td>225</td>\n",
+       "      <td>8</td>\n",
+       "      <td>0.035556</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          id  pairs  eq_dim  sq_in  sq_out  sq_both  cols_in  rows_in  \\\n",
+       "2   017c7c7b      3       0      0       0        0        3        6   \n",
+       "5   0520fde7      3       0      0       1        0        7        3   \n",
+       "13  0b148d64      3       0      0       0        0       21       21   \n",
+       "18  10fcaaa3      4       0      0       0        0        4        2   \n",
+       "20  1190e5a7      3       0      1       0        0       15       15   \n",
+       "\n",
+       "    cols_out  rows_out  area_in  area_out  increase  \n",
+       "2          3         9       18        27  1.500000  \n",
+       "5          3         3       21         9  0.428571  \n",
+       "13        10        10      441       100  0.226757  \n",
+       "18         8         4        8        32  4.000000  \n",
+       "20         4         2      225         8  0.035556  "
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "diff_non_squared_train.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cee3fda0",
+   "metadata": {
+    "papermill": {
+     "duration": 0.011474,
+     "end_time": "2024-09-22T04:10:46.337713",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.326239",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Printing the amounts of examples by dimensionality distribution"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "b74a1024",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:49:12.802127Z",
+     "start_time": "2024-07-17T05:49:12.798022Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.362990Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.362617Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.370229Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.369055Z"
+    },
+    "papermill": {
+     "duration": 0.023906,
+     "end_time": "2024-09-22T04:10:46.373234",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.349328",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "eq n sq:  164\n",
+      "eq non sq:  98\n",
+      "diff n sq:  49\n",
+      "diff non sq:  89\n",
+      "\n",
+      "Total:  400\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"eq n sq: \", equals_squared_train.shape[0])\n",
+    "print(\"eq non sq: \", equals_non_squared_train.shape[0])\n",
+    "print(\"diff n sq: \", diff_squared_train.shape[0])\n",
+    "print(\"diff non sq: \", diff_non_squared_train.shape[0])\n",
+    "print(\"\\nTotal: \", equals_squared_train.shape[0] + equals_non_squared_train.shape[0] + diff_squared_train.shape[0] + diff_non_squared_train.shape[0])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "47059260",
+   "metadata": {
+    "papermill": {
+     "duration": 0.01136,
+     "end_time": "2024-09-22T04:10:46.398896",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.387536",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Exporting to csv"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "4a15faaa",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:47:56.876969Z",
+     "start_time": "2024-07-17T05:47:56.872104Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.423503Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.423118Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.437203Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.436087Z"
+    },
+    "papermill": {
+     "duration": 0.029202,
+     "end_time": "2024-09-22T04:10:46.439613",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.410411",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#All the metadata\n",
+    "meta_train.to_csv('meta_train.csv',index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "6d921280",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2024-07-17T05:48:55.757380Z",
+     "start_time": "2024-07-17T05:48:55.752898Z"
+    },
+    "execution": {
+     "iopub.execute_input": "2024-09-22T04:10:46.465414Z",
+     "iopub.status.busy": "2024-09-22T04:10:46.465026Z",
+     "iopub.status.idle": "2024-09-22T04:10:46.476656Z",
+     "shell.execute_reply": "2024-09-22T04:10:46.475783Z"
+    },
+    "papermill": {
+     "duration": 0.027478,
+     "end_time": "2024-09-22T04:10:46.479109",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.451631",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "#exporting by specs to work indepently\n",
+    "equals_squared_train.to_csv('equals_squared_train.csv',index=False)\n",
+    "equals_non_squared_train.to_csv('equals_non_squared_train.csv',index=False)\n",
+    "diff_squared_train.to_csv('diff_squared_train.csv',index=False)\n",
+    "diff_non_squared_train.to_csv('diff_non_squared_train.csv',index=False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a6b5fd3c",
+   "metadata": {
+    "papermill": {
+     "duration": 0.011191,
+     "end_time": "2024-09-22T04:10:46.502126",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.490935",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Thanks !!!\n",
+    "\n",
+    "I'll appreciate if you look into my others [Notebooks](https://www.kaggle.com/alejandravillarreal/code)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "464a82e5",
+   "metadata": {
+    "papermill": {
+     "duration": 0.011395,
+     "end_time": "2024-09-22T04:10:46.525155",
+     "exception": false,
+     "start_time": "2024-09-22T04:10:46.513760",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "*I will appreciate any feedback* 🙂"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "databundleVersionId": 8951125,
+     "sourceId": 67357,
+     "sourceType": "competition"
+    }
+   ],
+   "dockerImageVersionId": 30746,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 5.884285,
+   "end_time": "2024-09-22T04:10:46.956200",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-09-22T04:10:41.071915",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
